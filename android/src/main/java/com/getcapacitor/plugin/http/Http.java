@@ -2,6 +2,7 @@ package com.getcapacitor.plugin.http;
 
 import android.Manifest;
 import android.util.Log;
+
 import com.getcapacitor.CapConfig;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -10,6 +11,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
@@ -19,11 +21,11 @@ import java.net.URI;
  * Native HTTP Plugin
  */
 @CapacitorPlugin(
-    name = "Http",
-    permissions = {
-        @Permission(strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE }, alias = "HttpWrite"),
-        @Permission(strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE }, alias = "HttpRead")
-    }
+        name = "Http",
+        permissions = {
+                @Permission(strings = {Manifest.permission.WRITE_EXTERNAL_STORAGE}, alias = "HttpWrite"),
+                @Permission(strings = {Manifest.permission.WRITE_EXTERNAL_STORAGE}, alias = "HttpRead")
+        }
 )
 public class Http extends Plugin {
 
@@ -36,6 +38,7 @@ public class Http extends Plugin {
     /**
      * Helper function for getting the serverUrl from the Capacitor Config. Returns an empty
      * string if it is invalid and will auto-reject through {@code call}
+     *
      * @param call the {@code PluginCall} context
      * @return the string of the server specified in the Capacitor config
      */
@@ -53,6 +56,7 @@ public class Http extends Plugin {
 
     /**
      * Try to parse a url string and if it can't be parsed, return null
+     *
      * @param url the url string to try to parse
      * @return a parsed URI
      */
@@ -135,21 +139,17 @@ public class Http extends Plugin {
             bridge.saveCall(call);
             String fileDirectory = call.getString("fileDirectory", FilesystemUtils.DIRECTORY_DOCUMENTS);
 
-            if (
-                !FilesystemUtils.isPublicDirectory(fileDirectory) ||
-                isStoragePermissionGranted(call, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            ) {
-                call.release(bridge);
+            call.release(bridge);
 
-                HttpRequestHandler.ProgressEmitter emitter = new HttpRequestHandler.ProgressEmitter() {
-                    @Override
-                    public void emit(Integer bytes, Integer contentLength) {
-                        // no-op
-                    }
-                };
-                Boolean progress = call.getBoolean("progress", false);
-                if (progress) {
-                    emitter =
+            HttpRequestHandler.ProgressEmitter emitter = new HttpRequestHandler.ProgressEmitter() {
+                @Override
+                public void emit(Integer bytes, Integer contentLength) {
+                    // no-op
+                }
+            };
+            Boolean progress = call.getBoolean("progress", false);
+            if (progress) {
+                emitter =
                         new HttpRequestHandler.ProgressEmitter() {
                             @Override
                             public void emit(final Integer bytes, final Integer contentLength) {
@@ -162,11 +162,10 @@ public class Http extends Plugin {
                                 notifyListeners("progress", ret);
                             }
                         };
-                }
-
-                JSObject response = HttpRequestHandler.downloadFile(call, getContext(), emitter);
-                call.resolve(response);
             }
+
+            JSObject response = HttpRequestHandler.downloadFile(call, getContext(), emitter);
+            call.resolve(response);
         } catch (MalformedURLException ex) {
             call.reject("Invalid URL", ex);
         } catch (IOException ex) {
@@ -183,8 +182,8 @@ public class Http extends Plugin {
             bridge.saveCall(call);
 
             if (
-                !FilesystemUtils.isPublicDirectory(fileDirectory) ||
-                isStoragePermissionGranted(call, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    !FilesystemUtils.isPublicDirectory(fileDirectory) ||
+                            isStoragePermissionGranted(call, Manifest.permission.WRITE_EXTERNAL_STORAGE)
             ) {
                 call.release(bridge);
                 JSObject response = HttpRequestHandler.uploadFile(call, getContext());
