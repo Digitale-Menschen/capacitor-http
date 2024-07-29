@@ -10,6 +10,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "dist/esm",
+    "typeRoots": ["node_modules/@types/"],
     "pretty": true,
     "sourceMap": true,
     "strict": true,

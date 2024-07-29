@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.UUID;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 
 public class FormUploader {
@@ -97,6 +98,17 @@ public class FormUploader {
      * @throws IOException Thrown if unable to parse the OutputStream of the connection
      */
     public void addFilePart(String fieldName, File uploadFile, JSObject data) throws IOException {
+        addFilePart(fieldName, uploadFile, data, "");
+    }
+
+    /**
+     * Adds a upload file section to the request
+     *
+     * @param fieldName  name attribute in <input type="file" name="..." />
+     * @param uploadFile a File to be uploaded
+     * @throws IOException Thrown if unable to parse the OutputStream of the connection
+     */
+    public void addFilePart(String fieldName, File uploadFile, JSObject data, @Nullable String targetFileName) throws IOException {
         String fileName = uploadFile.getName();
         prWriter
             .append(LINE_FEED)
@@ -106,7 +118,7 @@ public class FormUploader {
             .append("Content-Disposition: form-data; name=\"")
             .append(fieldName)
             .append("\"; filename=\"")
-            .append(fileName)
+            .append((targetFileName == null) ? fileName : targetFileName)
             .append("\"")
             .append(LINE_FEED)
             .append("Content-Type: ")

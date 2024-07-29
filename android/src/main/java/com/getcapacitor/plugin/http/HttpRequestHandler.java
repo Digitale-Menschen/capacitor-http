@@ -3,9 +3,14 @@ package com.getcapacitor.plugin.http;
 import static com.getcapacitor.plugin.http.MimeType.APPLICATION_JSON;
 import static com.getcapacitor.plugin.http.MimeType.APPLICATION_VND_API_JSON;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
@@ -127,11 +132,11 @@ public class HttpRequestHandler {
             String initialQueryBuilderStr = initialQuery == null ? "" : initialQuery;
 
             Iterator<String> keys = params.keys();
-            
+
             if (!keys.hasNext()) {
                 return this;
             }
-            
+
             StringBuilder urlQueryBuilder = new StringBuilder(initialQueryBuilderStr);
 
             // Build the new query string
@@ -167,7 +172,13 @@ public class HttpRequestHandler {
                 URI encodedUri = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), urlQuery, uri.getFragment());
                 this.url = encodedUri.toURL();
             } else {
-                String unEncodedUrlString = uri.getScheme() + "://" + uri.getAuthority() + uri.getPath() + ((!urlQuery.equals("")) ? "?" + urlQuery : "") + ((uri.getFragment() != null) ? uri.getFragment() : "");
+                String unEncodedUrlString =
+                    uri.getScheme() +
+                    "://" +
+                    uri.getAuthority() +
+                    uri.getPath() +
+                    ((!urlQuery.equals("")) ? "?" + urlQuery : "") +
+                    ((uri.getFragment() != null) ? uri.getFragment() : "");
                 this.url = new URL(unEncodedUrlString);
             }
 
@@ -181,9 +192,10 @@ public class HttpRequestHandler {
 
     /**
      * Builds an HTTP Response given CapacitorHttpUrlConnection and ResponseType objects.
-     *   Defaults to ResponseType.DEFAULT
+     * Defaults to ResponseType.DEFAULT
+     *
      * @param connection The CapacitorHttpUrlConnection to respond with
-     * @throws IOException Thrown if the InputStream is unable to be parsed correctly
+     * @throws IOException   Thrown if the InputStream is unable to be parsed correctly
      * @throws JSONException Thrown if the JSON is unable to be parsed
      */
     private static JSObject buildResponse(CapacitorHttpUrlConnection connection) throws IOException, JSONException {
@@ -192,10 +204,11 @@ public class HttpRequestHandler {
 
     /**
      * Builds an HTTP Response given CapacitorHttpUrlConnection and ResponseType objects
-     * @param connection The CapacitorHttpUrlConnection to respond with
+     *
+     * @param connection   The CapacitorHttpUrlConnection to respond with
      * @param responseType The requested ResponseType
      * @return A JSObject that contains the HTTPResponse to return to the browser
-     * @throws IOException Thrown if the InputStream is unable to be parsed correctly
+     * @throws IOException   Thrown if the InputStream is unable to be parsed correctly
      * @throws JSONException Thrown if the JSON is unable to be parsed
      */
     private static JSObject buildResponse(CapacitorHttpUrlConnection connection, ResponseType responseType)
@@ -218,10 +231,11 @@ public class HttpRequestHandler {
 
     /**
      * Read the existing ICapacitorHttpUrlConnection data
-     * @param connection The ICapacitorHttpUrlConnection object to read in
+     *
+     * @param connection   The ICapacitorHttpUrlConnection object to read in
      * @param responseType The type of HTTP response to return to the API
      * @return The parsed data from the connection
-     * @throws IOException Thrown if the InputStreams cannot be properly parsed
+     * @throws IOException   Thrown if the InputStreams cannot be properly parsed
      * @throws JSONException Thrown if the JSON is malformed when parsing as JSON
      */
     static Object readData(ICapacitorHttpUrlConnection connection, ResponseType responseType) throws IOException, JSONException {
@@ -234,9 +248,6 @@ public class HttpRequestHandler {
             } else {
                 return readStreamAsString(errorStream);
             }
-        } else if (contentType != null && contentType.contains(APPLICATION_JSON.getValue())) {
-            // backward compatibility
-            return parseJSON(readStreamAsString(connection.getInputStream()));
         } else {
             InputStream stream = connection.getInputStream();
             switch (responseType) {
@@ -255,8 +266,9 @@ public class HttpRequestHandler {
 
     /**
      * Helper function for determining if the Content-Type is a typeof an existing Mime-Type
+     *
      * @param contentType The Content-Type string to check for
-     * @param mimeTypes The Mime-Type values to check against
+     * @param mimeTypes   The Mime-Type values to check against
      * @return
      */
     private static boolean isOneOf(String contentType, MimeType... mimeTypes) {
@@ -272,6 +284,7 @@ public class HttpRequestHandler {
 
     /**
      * Build the JSObject response headers based on the connection header map
+     *
      * @param connection The CapacitorHttpUrlConnection connection
      * @return A JSObject of the header values from the CapacitorHttpUrlConnection
      */
@@ -288,6 +301,7 @@ public class HttpRequestHandler {
 
     /**
      * Returns a JSObject or a JSArray based on a string-ified input
+     *
      * @param input String-ified JSON that needs parsing
      * @return A JSObject or JSArray
      * @throws JSONException thrown if the JSON is malformed
@@ -315,6 +329,7 @@ public class HttpRequestHandler {
 
     /**
      * Returns a string based on a base64 InputStream
+     *
      * @param in The base64 InputStream to convert to a String
      * @return String value of InputStream
      * @throws IOException thrown if the InputStream is unable to be read as base64
@@ -333,6 +348,7 @@ public class HttpRequestHandler {
 
     /**
      * Returns a string based on an InputStream
+     *
      * @param in The InputStream to convert to a String
      * @return String value of InputStream
      * @throws IOException thrown if the InputStream is unable to be read
@@ -354,11 +370,12 @@ public class HttpRequestHandler {
 
     /**
      * Makes an Http Request based on the PluginCall parameters
-     * @param call The Capacitor PluginCall that contains the options need for an Http request
+     *
+     * @param call       The Capacitor PluginCall that contains the options need for an Http request
      * @param httpMethod The HTTP method that overrides the PluginCall HTTP method
-     * @throws IOException throws an IO request when a connection can't be made
+     * @throws IOException        throws an IO request when a connection can't be made
      * @throws URISyntaxException thrown when the URI is malformed
-     * @throws JSONException thrown when the incoming JSON is malformed
+     * @throws JSONException      thrown when the incoming JSON is malformed
      */
     public static JSObject request(PluginCall call, String httpMethod) throws IOException, URISyntaxException, JSONException {
         String urlString = call.getString("url", "");
@@ -403,10 +420,11 @@ public class HttpRequestHandler {
 
     /**
      * Makes an Http Request to download a file based on the PluginCall parameters
-     * @param call The Capacitor PluginCall that contains the options need for an Http request
-     * @param context The Android Context required for writing to the filesystem
+     *
+     * @param call     The Capacitor PluginCall that contains the options need for an Http request
+     * @param context  The Android Context required for writing to the filesystem
      * @param progress The emitter which notifies listeners on downloading progression
-     * @throws IOException throws an IO request when a connection can't be made
+     * @throws IOException        throws an IO request when a connection can't be made
      * @throws URISyntaxException thrown when the URI is malformed
      */
     public static JSObject downloadFile(PluginCall call, Context context, ProgressEmitter progress)
@@ -467,13 +485,25 @@ public class HttpRequestHandler {
         };
     }
 
+    private static void copyInputStreamToFile(InputStream inputStream, File file) throws IOException {
+        // append = false
+        try (FileOutputStream outputStream = new FileOutputStream(file, false)) {
+            int read;
+            byte[] bytes = new byte[64];
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+        }
+    }
+
     /**
      * Makes an Http Request to upload a file based on the PluginCall parameters
-     * @param call The Capacitor PluginCall that contains the options need for an Http request
+     *
+     * @param call    The Capacitor PluginCall that contains the options need for an Http request
      * @param context The Android Context required for writing to the filesystem
-     * @throws IOException throws an IO request when a connection can't be made
+     * @throws IOException        throws an IO request when a connection can't be made
      * @throws URISyntaxException thrown when the URI is malformed
-     * @throws JSONException thrown when malformed JSON is passed into the function
+     * @throws JSONException      thrown when malformed JSON is passed into the function
      */
     public static JSObject uploadFile(PluginCall call, Context context) throws IOException, URISyntaxException, JSONException {
         String urlString = call.getString("url");
@@ -490,7 +520,18 @@ public class HttpRequestHandler {
 
         URL url = new URL(urlString);
 
-        File file = FilesystemUtils.getFileObject(context, filePath, fileDirectory);
+        File file;
+
+        if (filePath.contains("content://")) { //content provider uri
+            Uri fileUri = Uri.parse(filePath);
+            InputStream contentInputStream = context.getContentResolver().openInputStream(fileUri);
+            String fileName = getFileName(filePath, context);
+            String mimeType = context.getContentResolver().getType(fileUri);
+            file = FilesystemUtils.getFileObject(context, fileName, FilesystemUtils.DIRECTORY_CACHE);
+            copyInputStreamToFile(contentInputStream, file); //copy content stream to local file
+        } else { //regular file path
+            file = FilesystemUtils.getFileObject(context, filePath, fileDirectory);
+        }
 
         HttpURLConnectionBuilder connectionBuilder = new HttpURLConnectionBuilder()
             .setUrl(url)
@@ -504,11 +545,63 @@ public class HttpRequestHandler {
         CapacitorHttpUrlConnection connection = connectionBuilder.build();
         connection.setDoOutput(true);
 
+        String newShortFileName = getShortFileName(file.getName());
+
         FormUploader builder = new FormUploader(connection.getHttpConnection());
-        builder.addFilePart(name, file, data);
+        builder.addFilePart(name, file, data, newShortFileName);
         builder.finish();
 
         return buildResponse(connection, responseType);
+    }
+
+    /**
+     * generate short file name from long file name
+     */
+    public static String getShortFileName(String fileName) {
+        int maxLength = 20;
+        int extStartIndex = fileName.lastIndexOf(".");
+
+        String fileExt = fileName.substring(extStartIndex + 1);
+        String fileNameWithoutExt = fileName.substring(0, extStartIndex);
+        int fileNameWithoutExtNewLength = Math.min(fileNameWithoutExt.length(), maxLength - fileExt.length() - 1);
+
+        String shortFileName = fileNameWithoutExt.substring(0, fileNameWithoutExtNewLength) + "." + fileExt;
+
+        return shortFileName;
+    }
+
+    /**
+     * get file name from filePath.
+     * support file from content provider, return real file name
+     */
+    @SuppressLint("Range")
+    private static String getFileName(String filePath, Context context) {
+        String result = null;
+
+        Uri fileUri = Uri.parse(filePath);
+
+        /* content provider fileUri */
+        if (fileUri.getScheme().equals("content")) {
+            Cursor cursor = context.getContentResolver().query(fileUri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+
+        if (result == null) {
+            result = fileUri.getPath();
+            int cut = result.lastIndexOf('/');
+
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+
+        return result;
     }
 
     @FunctionalInterface

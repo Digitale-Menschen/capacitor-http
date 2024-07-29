@@ -2,7 +2,6 @@ package com.getcapacitor.plugin.http;
 
 import android.Manifest;
 import android.util.Log;
-
 import com.getcapacitor.CapConfig;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -11,7 +10,6 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
-
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
@@ -21,11 +19,11 @@ import java.net.URI;
  * Native HTTP Plugin
  */
 @CapacitorPlugin(
-        name = "Http",
-        permissions = {
-                @Permission(strings = {Manifest.permission.WRITE_EXTERNAL_STORAGE}, alias = "HttpWrite"),
-                @Permission(strings = {Manifest.permission.WRITE_EXTERNAL_STORAGE}, alias = "HttpRead")
-        }
+    name = "Http",
+    permissions = {
+        @Permission(strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE }, alias = "HttpWrite"),
+        @Permission(strings = { Manifest.permission.WRITE_EXTERNAL_STORAGE }, alias = "HttpRead")
+    }
 )
 public class Http extends Plugin {
 
@@ -150,18 +148,18 @@ public class Http extends Plugin {
             Boolean progress = call.getBoolean("progress", false);
             if (progress) {
                 emitter =
-                        new HttpRequestHandler.ProgressEmitter() {
-                            @Override
-                            public void emit(final Integer bytes, final Integer contentLength) {
-                                JSObject ret = new JSObject();
-                                ret.put("type", "DOWNLOAD");
-                                ret.put("url", call.getString("url"));
-                                ret.put("bytes", bytes);
-                                ret.put("contentLength", contentLength);
+                    new HttpRequestHandler.ProgressEmitter() {
+                        @Override
+                        public void emit(final Integer bytes, final Integer contentLength) {
+                            JSObject ret = new JSObject();
+                            ret.put("type", "DOWNLOAD");
+                            ret.put("url", call.getString("url"));
+                            ret.put("bytes", bytes);
+                            ret.put("contentLength", contentLength);
 
-                                notifyListeners("progress", ret);
-                            }
-                        };
+                            notifyListeners("progress", ret);
+                        }
+                    };
             }
 
             JSObject response = HttpRequestHandler.downloadFile(call, getContext(), emitter);
@@ -178,17 +176,10 @@ public class Http extends Plugin {
     @PluginMethod
     public void uploadFile(PluginCall call) {
         try {
-            String fileDirectory = call.getString("fileDirectory", FilesystemUtils.DIRECTORY_DOCUMENTS);
             bridge.saveCall(call);
-
-            if (
-                    !FilesystemUtils.isPublicDirectory(fileDirectory) ||
-                            isStoragePermissionGranted(call, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            ) {
-                call.release(bridge);
-                JSObject response = HttpRequestHandler.uploadFile(call, getContext());
-                call.resolve(response);
-            }
+            call.release(bridge);
+            JSObject response = HttpRequestHandler.uploadFile(call, getContext());
+            call.resolve(response);
         } catch (Exception ex) {
             call.reject("Error", ex);
         }
