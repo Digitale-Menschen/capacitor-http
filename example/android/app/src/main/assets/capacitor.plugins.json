@@ -1,6 +1,6 @@
 [
   {
-    "pkg": "@digitale-menschen/http",
+    "pkg": "@digitale-menschen/capacitor-http",
     "classpath": "com.getcapacitor.plugin.http.Http"
   }
 ]

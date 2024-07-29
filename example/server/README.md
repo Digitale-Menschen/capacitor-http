@@ -1,6 +1,6 @@
 # Example Server
 
-This example server can be used when testing the example Android and iOS applications in the `/example` folder of the `@digitale-menschen/http` repo
+This example server can be used when testing the example Android and iOS applications in the `/example` folder of the `@digitale-menschen/capacitor-http` repo
 
 ## Routes
 
